@@ -1,0 +1,14 @@
+{
+  "name": "deadline-verifier-lab",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Lab de Arteclaw Builders: las 4 certificaciones Claude (Associate, Developer, Architect Foundations, Architect Professional) en un mini-proyecto de 4 archivos, vanilla JS, cero dependencias runtime.",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "license": "UNLICENSED"
+}
