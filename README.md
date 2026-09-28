@@ -21,8 +21,17 @@ que SE LLAME a una función en vez de intentar responder solo), correr
 problema de calcular días hábiles que en el lab principal queda a criterio
 del modelo. Ver la sección dedicada más abajo.
 
+**Skills — sí está, en `.claude/skills/` (2 Skills reales):**
+`verificar-cita` (envuelve `src/04-verify.js` — grounding + fecha) y
+`sanitizar-input` (envuelve `src/01-sanitize.js` — detección de prompt
+injection). Cada una es un archivo `SKILL.md` con frontmatter
+`name`/`description` + instrucciones, invocable en una sesión interactiva
+de Claude Code sin correr `index.js` completo. Son 2 a propósito — para
+que se vea el patrón real: una Skill por tarea puntual, no un archivo
+gigante para todo el proyecto (eso ya lo cubre `CLAUDE.md`). Ejemplos de
+uso reales, probados en vivo, más abajo.
+
 **Qué NO cubre este lab (aclaración explícita, no un olvido):**
-- **Skills.** No se define ni se invoca ninguna Skill de Claude.
 - **`AGENTS.md`.** Este repo usa `CLAUDE.md` (sí presente, en la raíz) para
   documentar las reglas del proyecto — no tiene un `AGENTS.md` aparte,
   decisión consciente para un repo de este tamaño, no un descuido.
@@ -71,6 +80,12 @@ deadline-verifier-lab/
 ├── .gitignore                  excluye .env, node_modules/, y los logs generados
 ├── CLAUDE.md                   reglas del proyecto para Claude Code (ver pregunta de arriba)
 ├── README.md                   este archivo
+├── .claude/
+│   └── skills/
+│       ├── verificar-cita/
+│       │   └── SKILL.md         Skill 1 — envuelve 04-verify.js (grounding + fecha)
+│       └── sanitizar-input/
+│           └── SKILL.md         Skill 2 — envuelve 01-sanitize.js (detección de injection)
 ├── fixtures/
 │   └── textos-fuente.json      los 2 casos de prueba (datos, no código)
 ├── logs/

@@ -1,8 +1,13 @@
 # deadline-verifier-lab
 
-Mini-lab de Arteclaw Builders (Clase 4, Open Builders) — 4 archivos, uno por
-certificación Claude (Associate, Developer, Architect Foundations, Architect
-Professional). Ver README.md para el contexto completo.
+Mini-lab de Arteclaw Builders (Clase 4, Open Builders) — el flujo principal
+(`index.js` + los 4 archivos de `src/01..04`) tiene uno por certificación
+Claude (Associate, Developer, Architect Foundations, Architect
+Professional). Además: `bonus-tooluse.js` (tool use real de la API, ver
+README) y `.claude/skills/verificar-cita/` (Skill que envuelve la lógica de
+`04-verify.js` para uso interactivo en una sesión de Claude Code). Ver
+README.md para el árbol completo de archivos y el mapa detallado de
+conceptos.
 
 ## Reglas del proyecto
 
