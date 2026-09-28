@@ -30,9 +30,16 @@ Devolvé SOLO un JSON con esta forma exacta, sin texto antes ni después:
 // Evaluación mínima del output ANTES de confiar en él — esto es lo que hace que el
 // paso anterior sea "evaluable" y no un prompt suelto: ¿tiene la forma que pedimos?
 export function evaluarFormato(jsonCrudo) {
+  // El modelo a veces envuelve el JSON en un bloque de código Markdown
+  // (```json ... ```) aunque el prompt pida "SOLO un JSON, sin texto antes
+  // ni después" — instrucción probabilística, no garantía. Sacar el
+  // envoltorio acá es parte de "evaluar el formato", no un intento de
+  // forzar que algo mal formado pase igual.
+  const limpio = jsonCrudo.trim().replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "").trim();
+
   let parsed;
   try {
-    parsed = JSON.parse(jsonCrudo);
+    parsed = JSON.parse(limpio);
   } catch {
     return { valido: false, motivo: "No es JSON parseable", parsed: null };
   }

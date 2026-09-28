@@ -60,7 +60,13 @@ async function main() {
     resultado = { confiable: false, motivo: evaluacion.motivo };
   } else {
     const grounding = verificarGrounding(textoSanitizado, evaluacion.parsed.fragmento_citado);
-    const fecha = verificarFecha(evaluacion.parsed.fecha_limite);
+    // fechaReferencia del fixture: el "hoy" que la pregunta le da al modelo
+    // (ej. "asumiendo que hoy es 3 de marzo de 2026"), no la fecha real del
+    // sistema — si se usa new Date() acá, cualquier fixture con una fecha
+    // asumida en el pasado siempre sale "NO CONFIABLE" sin importar qué
+    // conteste el modelo.
+    const fechaReferencia = caso.fechaReferencia ? new Date(caso.fechaReferencia) : new Date();
+    const fecha = verificarFecha(evaluacion.parsed.fecha_limite, fechaReferencia);
     resultado = {
       confiable: grounding.grounded && fecha.fechaValida,
       grounding,

@@ -16,6 +16,14 @@ una pregunta, Claude extrae una fecha límite citando textualmente de dónde la
 sacó. El sistema verifica esa cita antes de confiar en ella — no alcanza con
 que el JSON tenga buena forma, tiene que ser verdad.
 
+**Qué verifica exactamente, y qué no (punto para mencionar en la clase):** el
+verificador comprueba que el `fragmento_citado` exista tal cual dentro del
+texto fuente — eso es grounding real, no un chequeo cosmético. Lo que NO
+verifica es que la fecha extraída sea el cálculo correcto del plazo (10 días
+hábiles desde la notificación): eso queda a criterio del modelo, sin
+recalcularse en código. Es un ejemplo útil de "bien formado ≠ verdadero" —
+el JSON puede tener una cita real y una fecha igual mal calculada.
+
 ## El loop de gobernanza
 
 ```
@@ -51,20 +59,63 @@ domain-agnostic, cero dependencias runtime):
 Este lab es la versión mini, vanilla JS, propia, del programa Builders — los
 repos de arriba son la referencia conceptual, no una dependencia del código.
 
-## Requisitos
+## Ruta sin instalar nada (recomendada para no-técnicos)
+
+No hace falta instalar Node, Git, ni usar una terminal. Se puede correr todo
+desde **Claude Code en la web** ([claude.ai/code](https://claude.ai/code)),
+disponible también desde la pestaña Code de la app de Claude (celular o
+escritorio):
+
+1. Entrá a claude.ai/code y conectá tu cuenta de GitHub (la primera vez pide
+   instalar la Claude GitHub App — con eso alcanza para usar cualquier repo
+   público, no hace falta ser colaborador de `arteclaw-io`).
+2. Abrí una sesión sobre este repo (`arteclaw-io/deadline-verifier-lab`).
+3. Escribí en español algo como: *"corré `node index.js
+   notificacion-02-riesgosa` y explicame qué pasó"*. Claude Code lo ejecuta
+   en su propio entorno en la nube y te muestra el resultado.
+
+Ese caso (el riesgoso) **no necesita API key** — es el que conviene que
+todos puedan completar sin fricción. El caso normal (`notificacion-01`) sí
+necesita una `ANTHROPIC_API_KEY` propia con crédito cargado (ver abajo),
+así que es opcional o para que lo muestre el instructor en vivo.
+
+Requiere un plan pago de Claude (Pro, Max o Team) — con la cuenta gratuita
+Claude Code no está disponible.
+
+## Requisitos (para correrlo localmente, con Node/terminal)
 
 - Node.js 18 o superior (usa `fetch` nativo — no hay SDK ni dependencias de
   npm que instalar).
-- Una API key de Anthropic (`ANTHROPIC_API_KEY`). Conseguila en
-  [console.anthropic.com](https://console.anthropic.com).
+- Para el caso `notificacion-01`: una API key de Anthropic
+  (`ANTHROPIC_API_KEY`), con facturación propia aparte de cualquier
+  suscripción Pro/Max. Cómo conseguirla:
+  1. Entrá a [console.anthropic.com](https://console.anthropic.com) y creá
+     una cuenta (o iniciá sesión si ya tenés una — es una cuenta distinta a
+     la de claude.ai/tu suscripción Pro).
+  2. Cargá una forma de pago en **Settings → Billing** y agregá crédito
+     (unos USD 5 alcanzan de sobra para este lab).
+  3. Andá a **API Keys → Create Key**, ponele un nombre (ej.
+     "deadline-verifier-lab") y copiala — Anthropic la muestra una sola vez.
+  4. Pegala en tu `.env` como `ANTHROPIC_API_KEY=sk-ant-...` (nunca en el
+     código ni en un mensaje/chat).
+
+  **No la definas como variable de entorno global de tu sistema** si además
+  usás Claude Code con tu suscripción — Anthropic recomienda no tenerla
+  seteada así, para evitar que Claude Code la use y te cobre de más por
+  afuera del plan. Este lab la lee únicamente de `.env` (no del entorno del
+  sistema), así que alcanza con no exportarla en tu shell.
+- `notificacion-02-riesgosa` no necesita API key — se rechaza antes de
+  llamar a la API.
 
 ## Cómo correrlo
 
 ```bash
 cp .env.example .env
-# Editá .env y pegá tu ANTHROPIC_API_KEY ahí (nunca en el código).
+# Editá .env y pegá tu ANTHROPIC_API_KEY ahí (nunca en el código) — solo
+# hace falta para notificacion-01, no para el caso riesgoso.
 
-node index.js notificacion-01
+node index.js notificacion-02-riesgosa   # no usa la API
+node index.js notificacion-01            # sí usa la API
 ```
 
 Fixtures disponibles en `fixtures/textos-fuente.json`:
@@ -89,7 +140,17 @@ simplificada a propósito. Esa distancia entre este prototipo y una
 herramienta real es, justamente, el contenido de las 5 clases del Programa
 Starter Individual.
 
+## Nota sobre red en Claude Code web
+
+El nivel de red por defecto de claude.ai/code ("Trusted") deja pasar
+registros de paquetes (npm, etc.) pero bloquea el resto de internet, con
+excepción de la propia API de Anthropic para los pedidos que hace Claude
+Code — no necesariamente para un `fetch` que el script mismo haga a
+`api.anthropic.com`. Si `notificacion-01` falla ahí con un error de red (no
+de fecha ni de JSON), cambiá a nivel "Custom" y agregá `api.anthropic.com` a
+los dominios permitidos.
+
 ## Estado
 
-Repo privado por ahora. Material de la Clase 4 (Architect Professional) del
-Grupo de Estudio Open Builders, viernes 25/9/2026.
+Repo público. Material de la Clase 4 (Architect Professional) del Grupo de
+Estudio Open Builders, originalmente viernes 25/9/2026.
