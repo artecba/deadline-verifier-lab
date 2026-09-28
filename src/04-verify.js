@@ -16,6 +16,12 @@ const ARCHIVO_LOG = "logs/auditoria.jsonl";
 
 // --- 1) Verificación de grounding -----------------------------------------
 
+// GROUNDEDNESS (Architect Professional — término exacto del glosario de la
+// certificación): esta función, sola, es el corazón de todo el lab. Un
+// modelo puede devolver un JSON perfecto, con una fecha con buena pinta y
+// "confianza": "alta" — y aun así estar inventando la cita. La única forma
+// de saberlo es comprobar el texto real, en código, sin confiar en lo que
+// el modelo DICE que citó.
 export function verificarGrounding(textoFuente, fragmentoCitado) {
   if (!fragmentoCitado || typeof fragmentoCitado !== "string") {
     return { grounded: false, motivo: "No hay fragmento citado" };
@@ -30,6 +36,10 @@ export function verificarGrounding(textoFuente, fragmentoCitado) {
   };
 }
 
+// VALIDACIÓN DE REGLA DE NEGOCIO, no solo de formato: acá se aplica lógica
+// de dominio (¿la fecha ya pasó respecto a una referencia?) sobre un dato
+// que YA se confirmó bien formado en 02-prompt.js. Es la capa siguiente,
+// deliberadamente separada.
 export function verificarFecha(fechaLimiteStr, fechaReferencia = new Date()) {
   if (fechaLimiteStr === null || fechaLimiteStr === "null") {
     return { fechaValida: false, motivo: "El modelo no pudo determinar una fecha" };
@@ -46,6 +56,15 @@ export function verificarFecha(fechaLimiteStr, fechaReferencia = new Date()) {
 
 // --- 2) Log de auditoría ----------------------------------------------------
 
+// HITL / AUDITABILIDAD (Architect Professional — governance, safety & risk
+// management): esta función es lo que convierte "el sistema decidió algo"
+// en "un humano puede revisar por qué después". Guarda SIEMPRE — tanto
+// cuando se rechaza en sanitización como cuando se verifica — con qué se
+// pidió, qué contestó el modelo, y el resultado de la verificación. En un
+// sistema real esto sería una tabla auditada, no un archivo de texto
+// plano (ver "Qué le falta a esto para ser producción real" en el README);
+// acá alcanza para mostrar el concepto: nunca actuar sobre una decisión de
+// IA sin dejar rastro de cómo se llegó a ella.
 export async function loggearDecision(registro) {
   await mkdir("logs", { recursive: true });
   const linea = JSON.stringify({ timestamp: new Date().toISOString(), ...registro }) + "\n";

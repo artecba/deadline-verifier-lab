@@ -6,6 +6,13 @@
 // el primer paso es pedir SIEMPRE una forma de salida fija (JSON), no prosa.
 // ============================================================
 
+// PROMPT ENGINEERING (Associate/Claude Models): tres técnicas concretas en
+// un prompt de ~20 líneas — (1) rol + restricción de alcance ("EXCLUSIVAMENTE
+// en base al texto fuente", cero conocimiento externo inventado), (2)
+// permiso explícito y acotado para UNA excepción (aritmética de calendario,
+// ver más abajo), y (3) "structured output": pedir un JSON con forma fija
+// en vez de dejar que conteste en prosa libre. Sin (3), nada de lo que
+// sigue en el resto del lab (evaluar, verificar) sería posible en código.
 export function armarPrompt(textoFuente, pregunta) {
   return `Sos un asistente que responde EXCLUSIVAMENTE en base al texto fuente dado.
 No inventes hechos, plazos ni fechas que no estén en el texto o en la
@@ -31,8 +38,15 @@ Devolvé SOLO un JSON con esta forma exacta, sin texto antes ni después:
 }`;
 }
 
-// Evaluación mínima del output ANTES de confiar en él — esto es lo que hace que el
-// paso anterior sea "evaluable" y no un prompt suelto: ¿tiene la forma que pedimos?
+// OUTPUT EVALUATION (Associate, dominio central): evaluación mínima del
+// output ANTES de confiar en él — esto es lo que hace que el paso anterior
+// sea "evaluable" y no un prompt suelto: ¿tiene la forma que pedimos? Nota
+// para la clase: esta función SOLO valida forma (¿es JSON?, ¿tiene los
+// campos?, ¿el enum es válido?) — NO valida que el contenido sea correcto.
+// Esa segunda verificación (¿la cita es real?, ¿la fecha es válida?) es
+// deliberadamente OTRA función, en OTRO archivo (04-verify.js, dominio
+// Architect Professional) — separar "está bien formado" de "es verdad" es
+// el punto pedagógico central de todo el lab.
 export function evaluarFormato(jsonCrudo) {
   // El modelo a veces envuelve el JSON en un bloque de código Markdown
   // (```json ... ```), y a veces además agrega prosa DESPUÉS del bloque

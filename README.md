@@ -40,6 +40,61 @@ input → (sanitizar) → Claude responde → (evaluar formato) → (verificar) 
 `index.js` orquesta las 4 paradas en orden sobre un fixture de
 `fixtures/textos-fuente.json`.
 
+## Mapa completo: dónde ver cada concepto de certificación en el código
+
+Cada archivo tiene comentarios en el código mismo (buscá los bloques que
+dicen ARQUITECTURA / GOBERNANZA / OUTPUT EVALUATION / etc.) — esto es el
+índice para navegarlos sin tener que leer todo de punta a punta.
+
+**`index.js` — la arquitectura general**
+- Patrón elegido: **workflow** (pasos fijos en código), no un agente
+  autónomo. Elegir entre workflow / agentic / augmented LLM es en sí un
+  concepto de **Architect Professional** (Solution Design) — acá el modelo
+  nunca decide el orden de los pasos, solo responde una pregunta puntual
+  dentro de un paso.
+- El `return` temprano cuando `riesgo === "alto"` es un **preventive
+  control** (Architect Professional, Governance) — bloquea antes de gastar
+  una llamada, no audita después.
+
+**`src/01-sanitize.js` — Architect Foundations (security by design)**
+- Guardrail determinístico (regex), no un LLM juzgando si el input es
+  peligroso — trade-off explícito entre cobertura y costo/latencia/
+  explicabilidad.
+- `LIMITE_CARACTERES` como control de tamaño de input — barato, antes de
+  gastar tokens.
+
+**`src/02-prompt.js` — Associate (prompt engineering + output evaluation)**
+- `armarPrompt`: rol + restricción de alcance ("no inventes"), permiso
+  acotado para UNA excepción (aritmética de calendario), y **structured
+  output** (pedir JSON con forma fija en vez de prosa) — sin esto, nada de
+  lo que sigue sería verificable en código.
+- `evaluarFormato`: la evaluación real — ¿es JSON?, ¿tiene los campos?,
+  ¿el enum es válido? Punto pedagógico clave: esto SOLO valida forma, no
+  contenido — "bien formado" se verifica acá, "verdadero" se verifica en
+  `04-verify.js`. Son dos funciones separadas a propósito.
+
+**`src/03-client.js` — Developer (integración de API)**
+- Llamada HTTP cruda (`fetch`, sin SDK) a la Messages API — auth por
+  header, versión de API explícita, extracción de `data.content[0].text`
+  (la forma real del response body).
+- **Model selection** (`claude-haiku-4-5`): decisión de arquitectura, no
+  default al azar — tarea de extracción/clasificación de bajo costo y alto
+  volumen potencial, el perfil donde Haiku gana frente a modelos más caros.
+- Manejo de error HTTP explícito (reliability) — no se traga el error.
+
+**`src/04-verify.js` — Architect Professional (governance, HITL, auditoría)**
+- `verificarGrounding`: **groundedness** (término exacto del glosario de
+  la certificación) — comprobar que la cita exista de verdad en el texto
+  fuente, en vez de confiar en que el modelo "dice" haber citado algo real.
+  Es el corazón del lab.
+- `verificarFecha`: validación de regla de negocio sobre un dato ya
+  confirmado bien formado — capa separada, después del formato.
+- `loggearDecision`: **auditabilidad/HITL** — se llama tanto en el camino
+  de rechazo como en el de verificación, siempre con qué se pidió, qué
+  contestó el modelo, y el resultado. La idea a transmitir en la clase:
+  nunca actuar sobre una decisión de IA sin dejar rastro de cómo se llegó
+  a ella.
+
 ## Origen de los patrones (referencia, no dependencia)
 
 Los patrones de sanitización y de verificación de grounding están adaptados

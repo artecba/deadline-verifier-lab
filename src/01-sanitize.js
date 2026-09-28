@@ -7,11 +7,21 @@
 // versión mini, propia, en vanilla JS — no importa el paquete real.
 // ============================================================
 
+// LIMITE_CARACTERES: control de "input size" — un texto fuente desmedido es
+// en sí mismo una señal de abuso (o de que alguien está tratando de inflar
+// el contexto para diluir las instrucciones del sistema). Es el tipo de
+// guardrail barato que se pone ANTES de gastar tokens, no después.
 const LIMITE_CARACTERES = 2000;
 
-// Frases típicas de intento de prompt injection sobre las instrucciones del sistema.
-// Los patrones matchean sobre texto SIN tildes (ver quitarTildes) para cubrir
-// conjugaciones acentuadas ("ignorá", "actuá") sin listar cada variante a mano.
+// GUARDRAIL, no clasificador con IA: esto es detección determinística
+// basada en reglas (regex), a propósito, para esta versión mini — más
+// rápido, gratis, y explicable que mandarle el texto a otro LLM para que
+// juzgue si es riesgoso. Es un trade-off real de Architect Foundations:
+// reglas simples cubren menos casos pero son auditables y no cuestan una
+// llamada de más. Frases típicas de intento de prompt injection sobre las
+// instrucciones del sistema. Los patrones matchean sobre texto SIN tildes
+// (ver quitarTildes) para cubrir conjugaciones acentuadas ("ignorá",
+// "actuá") sin listar cada variante a mano.
 const SENALES_DE_RIESGO = [
   /ignor[ae].{0,20}instruccion/i,
   /olvid[ae].{0,20}(instruccion|rol|prompt)/i,

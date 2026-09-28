@@ -26,14 +26,24 @@ async function main() {
 
   console.log(`\n=== Caso: ${caso.id} ===`);
 
-  // PARADA 1 — Architect Foundations: sanitizar
+  // ARQUITECTURA: esto es un patrón "workflow" (pasos fijos, predecibles, en
+  // código) y NO un agente autónomo que decide su propio próximo paso — la
+  // elección entre "workflow vs. agentic vs. augmented LLM" es justamente un
+  // concepto de Architect Professional (Solution Design). Acá el control de
+  // flujo (sanitizar → prompt → API → verificar) lo maneja index.js, el
+  // modelo nunca decide qué función llamar ni en qué orden.
+
+  // PARADA 1 — Architect Foundations: sanitizar (security by design)
   const { textoSanitizado, riesgo, senalesDetectadas } = sanitizarInput(caso.texto);
   console.log(`[Architect Foundations] riesgo detectado: ${riesgo}`, senalesDetectadas);
 
   if (riesgo === "alto") {
-    // Decisión de gobierno explícita: no se manda a la API un input con señales
-    // de prompt injection. Se loggea igual, para que quede registro de qué se
-    // rechazó y por qué.
+    // GOBERNANZA (Architect Professional): esto es un "preventive control"
+    // (bloquea antes de que pase algo malo) en vez de "detective" (detectar
+    // después del hecho) — decisión de gobierno explícita, en código, no
+    // delegada al modelo: no se manda a la API un input con señales de
+    // prompt injection. Se loggea igual, para que quede registro de qué se
+    // rechazó y por qué — el log es la pieza de auditoría/HITL.
     await loggearDecision({
       caso: caso.id,
       etapa: "rechazado_en_sanitizacion",
@@ -43,18 +53,21 @@ async function main() {
     return;
   }
 
-  // PARADA 2 — Associate: prompt estructurado
+  // PARADA 2 — Associate: prompt estructurado (prompt engineering + output evaluation)
   const prompt = armarPrompt(textoSanitizado, caso.pregunta);
 
-  // PARADA 3 — Developer: llamada real a la API
+  // PARADA 3 — Developer: llamada real a la API (integración, no SDK)
   const respuestaCruda = await llamarClaude(prompt);
   console.log("[Developer] Respuesta cruda de la API:", respuestaCruda);
 
   // PARADA 2 (evaluación) — Associate: ¿el output tiene la forma esperada?
+  // Este es el punto exacto donde "evaluar el output" deja de ser una frase
+  // y se vuelve código real: sin esto, no hay forma de saber en automático
+  // si la respuesta del modelo sirve.
   const evaluacion = evaluarFormato(respuestaCruda);
   console.log("[Associate] Formato válido:", evaluacion.valido, evaluacion.motivo ?? "");
 
-  // PARADA 4 — Architect Professional: verificar + loggear
+  // PARADA 4 — Architect Professional: verificar + loggear (grounding, HITL, auditoría)
   let resultado;
   if (!evaluacion.valido) {
     resultado = { confiable: false, motivo: evaluacion.motivo };
