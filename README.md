@@ -105,10 +105,13 @@ Claude Code no está disponible.
   1. Entrá a [console.anthropic.com](https://console.anthropic.com) y creá
      una cuenta (o iniciá sesión si ya tenés una — es una cuenta distinta a
      la de claude.ai/tu suscripción Pro).
-  2. Cargá una forma de pago en **Settings → Billing** y agregá crédito
-     (unos USD 5 alcanzan de sobra para este lab).
-  3. Andá a **API Keys → Create Key**, ponele un nombre (ej.
-     "deadline-verifier-lab") y copiala — Anthropic la muestra una sola vez.
+  2. Cargá una forma de pago y agregá crédito (unos USD 5 alcanzan de sobra
+     para este lab) en
+     [console.anthropic.com/settings/billing](https://console.anthropic.com/settings/billing).
+  3. Creá la key en
+     [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys)
+     → **Create Key**, ponele un nombre (ej. "deadline-verifier-lab") y
+     copiala — Anthropic la muestra una sola vez.
   4. Pegala en tu `.env` como `ANTHROPIC_API_KEY=sk-ant-...` (nunca en el
      código ni en un mensaje/chat).
 
