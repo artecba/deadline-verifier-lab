@@ -69,11 +69,21 @@ hace falta que sea el mismo email que usás para Claude; si no tenés una,
 creála antes en [github.com/signup](https://github.com/signup), es gratis
 y toma un par de minutos):
 
-1. Entrá a claude.ai/code y conectá tu cuenta de GitHub (la primera vez pide
-   instalar la Claude GitHub App — con eso alcanza para usar cualquier repo
-   público, no hace falta ser colaborador de `arteclaw-io`).
-2. Abrí una sesión sobre este repo (`arteclaw-io/deadline-verifier-lab`).
-3. Escribí en español algo como: *"corré `node index.js
+1. **Hacé un fork de este repo a tu propia cuenta primero** — botón "Fork"
+   arriba a la derecha en GitHub, o directo en
+   [github.com/arteclaw-io/deadline-verifier-lab/fork](https://github.com/arteclaw-io/deadline-verifier-lab/fork).
+   Es necesario: probado en vivo, claude.ai/code exige elegir un repositorio
+   antes de poder mandar cualquier mensaje, y el selector de repos solo
+   muestra repos propios (o donde ya tenés la Claude GitHub App instalada)
+   — el repo original de `arteclaw-io` NO va a aparecer ahí aunque sea
+   público, porque no sos colaborador. El fork es gratis, tuyo, y toma
+   10 segundos.
+2. Entrá a claude.ai/code y conectá tu cuenta de GitHub (la primera vez pide
+   instalar la Claude GitHub App — instalala sobre tu cuenta/todos tus
+   repos, no hace falta acceso a `arteclaw-io`).
+3. En "Seleccionar repositorio...", elegí **tu propio fork**
+   (`<tu-usuario>/deadline-verifier-lab`), no el original.
+4. Escribí en español algo como: *"corré `node index.js
    notificacion-02-riesgosa` y explicame qué pasó"*. Claude Code lo ejecuta
    en su propio entorno en la nube y te muestra el resultado.
 
