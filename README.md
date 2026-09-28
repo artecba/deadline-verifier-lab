@@ -211,6 +211,48 @@ simplificada a propósito. Esa distancia entre este prototipo y una
 herramienta real es, justamente, el contenido de las 5 clases del Programa
 Starter Individual.
 
+## Qué se puede reusar de este repo, y qué no
+
+Dos niveles distintos: reusar el **código tal cual**, y reusar el
+**patrón/arquitectura** (esto último es lo que más vale, más allá de si se
+copia una línea de JS o no).
+
+**Reutilizable tal cual, sin cambios:**
+- **`evaluarFormato` (el extractor de JSON entre el primer `{` y el último
+  `}`, en `src/02-prompt.js`)** — es la pieza más directamente reusable.
+  Cualquier proyecto que le pida JSON a un LLM se topa tarde o temprano con
+  que a veces viene envuelto en ` ```json ` o con texto antes/después. Esa
+  función resuelve eso igual en cualquier otro proyecto Node, sin
+  modificar nada.
+
+**Reutilizable como técnica, pero hay una versión más completa a la que ir
+directo en vez de partir de este lab:**
+- **`verificarGrounding`** (`src/04-verify.js`) — la técnica de chequear
+  que una cita exista literal en el texto fuente es correcta y reusable,
+  pero la versión real y completa es
+  [`arteclaw-io/rag-citation-guard`](https://github.com/arteclaw-io/rag-citation-guard).
+  Este lab es la miniatura educativa de ESE repo, no al revés.
+- **`sanitizarInput`** (`src/01-sanitize.js`) — sirve como primera capa
+  barata de detección de prompt injection, pero la versión completa es
+  [`arteclaw-io/llm-input-guard`](https://github.com/arteclaw-io/llm-input-guard).
+
+**A propósito NO reutilizable tal cual (documentado, no un descuido):**
+- **`loggearDecision`** escribe a un archivo de texto plano local — la
+  IDEA (loguear cada decisión con qué se pidió/qué contestó/si se
+  verificó, para auditoría) sí se reusa; la implementación no. En un
+  proyecto real eso va a una tabla con retención y control de acceso, no
+  a un `.jsonl` en disco.
+- **`llamarClaude`** usa `fetch` crudo a propósito, para que se vea la
+  llamada HTTP real en la clase. En un proyecto de verdad conviene usar el
+  SDK oficial de Anthropic en vez de reimplementar eso a mano.
+
+**Lo más valioso, y lo que de verdad conviene llevarse:** el loop
+`sanitizar → prompt estructurado → llamar → verificar → loggear` como
+forma de armar cualquier feature que use Claude sobre contenido no
+confiable, independientemente del lenguaje o stack. Es el esqueleto que
+después el Programa Starter Individual desarrolla a fondo en 5 clases, con
+deploy real incluido.
+
 ## Nota sobre red en Claude Code web
 
 El nivel de red por defecto de claude.ai/code ("Trusted") deja pasar
