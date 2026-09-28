@@ -11,6 +11,17 @@ chico. Es la versión de 30 minutos de la charla completa de 60 minutos
 "Claude Code en la práctica" (tentativa 7/10), con un caso distinto para no
 repetir esa demo.
 
+**Qué NO cubre este lab (aclaración explícita, no un olvido):**
+- **Tool use / function calling real.** La llamada en `src/03-client.js` es
+  un `messages: [...]` plano, sin el parámetro `tools` de la API — Claude
+  arma el JSON porque el *prompt* se lo pide, no porque el lab use la
+  feature real de tool calling / tool schema (un concepto explícito de
+  Developer). Si buscás eso, no está acá.
+- **Skills.** No se define ni se invoca ninguna Skill de Claude.
+- **`AGENTS.md`.** Este repo usa `CLAUDE.md` (sí presente, en la raíz) para
+  documentar las reglas del proyecto — no tiene un `AGENTS.md` aparte,
+  decisión consciente para un repo de este tamaño, no un descuido.
+
 **El caso:** dado un texto fuente (un fragmento de notificación judicial) y
 una pregunta, Claude extrae una fecha límite citando textualmente de dónde la
 sacó. El sistema verifica esa cita antes de confiar en ella — no alcanza con
