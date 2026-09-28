@@ -8,7 +8,11 @@
 
 export function armarPrompt(textoFuente, pregunta) {
   return `Sos un asistente que responde EXCLUSIVAMENTE en base al texto fuente dado.
-No uses conocimiento externo ni supongas fechas que no estén en el texto.
+No inventes hechos, plazos ni fechas que no estén en el texto o en la
+pregunta. SÍ podés (y tenés que) hacer aritmética de calendario básica —
+contar días hábiles de lunes a viernes a partir de una fecha dada— cuando
+la pregunta te da la fecha de partida explícitamente: eso es cálculo, no
+conocimiento externo inventado.
 Si el texto fuente no permite responder la pregunta, decilo explícitamente.
 
 TEXTO FUENTE:
@@ -31,15 +35,24 @@ Devolvé SOLO un JSON con esta forma exacta, sin texto antes ni después:
 // paso anterior sea "evaluable" y no un prompt suelto: ¿tiene la forma que pedimos?
 export function evaluarFormato(jsonCrudo) {
   // El modelo a veces envuelve el JSON en un bloque de código Markdown
-  // (```json ... ```) aunque el prompt pida "SOLO un JSON, sin texto antes
-  // ni después" — instrucción probabilística, no garantía. Sacar el
-  // envoltorio acá es parte de "evaluar el formato", no un intento de
-  // forzar que algo mal formado pase igual.
-  const limpio = jsonCrudo.trim().replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "").trim();
+  // (```json ... ```), y a veces además agrega prosa DESPUÉS del bloque
+  // (ej. una "Justificación:" explicando la respuesta) aunque el prompt
+  // pida "SOLO un JSON, sin texto antes ni después" — instrucción
+  // probabilística, no garantía. Sacar solo el primer bloque {...} en vez
+  // de asumir que el JSON ocupa el string entero es lo que hace que esto
+  // sobreviva tanto al caso "envuelto en fences" como al caso "envuelto Y
+  // con texto después" — un simple trim de fences al principio/final no
+  // alcanza cuando hay contenido después del fence de cierre.
+  const inicioJson = jsonCrudo.indexOf("{");
+  const finJson = jsonCrudo.lastIndexOf("}");
+  const candidato =
+    inicioJson !== -1 && finJson !== -1 && finJson > inicioJson
+      ? jsonCrudo.slice(inicioJson, finJson + 1)
+      : jsonCrudo.trim();
 
   let parsed;
   try {
-    parsed = JSON.parse(limpio);
+    parsed = JSON.parse(candidato);
   } catch {
     return { valido: false, motivo: "No es JSON parseable", parsed: null };
   }
