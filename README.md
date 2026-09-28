@@ -64,7 +64,10 @@ repos de arriba son la referencia conceptual, no una dependencia del código.
 No hace falta instalar Node, Git, ni usar una terminal. Se puede correr todo
 desde **Claude Code en la web** ([claude.ai/code](https://claude.ai/code)),
 disponible también desde la pestaña Code de la app de Claude (celular o
-escritorio):
+escritorio). Necesitás además una **cuenta de GitHub propia** (gratis — no
+hace falta que sea el mismo email que usás para Claude; si no tenés una,
+creála antes en [github.com/signup](https://github.com/signup), es gratis
+y toma un par de minutos):
 
 1. Entrá a claude.ai/code y conectá tu cuenta de GitHub (la primera vez pide
    instalar la Claude GitHub App — con eso alcanza para usar cualquier repo
