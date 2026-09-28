@@ -11,12 +11,17 @@ chico. Es la versión de 30 minutos de la charla completa de 60 minutos
 "Claude Code en la práctica" (tentativa 7/10), con un caso distinto para no
 repetir esa demo.
 
+**Tool use / function calling real — sí está, como bonus aparte
+(`bonus-tooluse.js`):** el lab principal (`src/03-client.js`) usa un
+`messages: [...]` plano — Claude arma el JSON porque el *prompt* se lo
+pide, no porque use la feature real de tool calling de la API. Para ver
+tool use de verdad (parámetro `tools`, schema validado, el modelo pidiendo
+que SE LLAME a una función en vez de intentar responder solo), correr
+`node bonus-tooluse.js` — es la versión "con herramienta real" del mismo
+problema de calcular días hábiles que en el lab principal queda a criterio
+del modelo. Ver la sección dedicada más abajo.
+
 **Qué NO cubre este lab (aclaración explícita, no un olvido):**
-- **Tool use / function calling real.** La llamada en `src/03-client.js` es
-  un `messages: [...]` plano, sin el parámetro `tools` de la API — Claude
-  arma el JSON porque el *prompt* se lo pide, no porque el lab use la
-  feature real de tool calling / tool schema (un concepto explícito de
-  Developer). Si buscás eso, no está acá.
 - **Skills.** No se define ni se invoca ninguna Skill de Claude.
 - **`AGENTS.md`.** Este repo usa `CLAUDE.md` (sí presente, en la raíz) para
   documentar las reglas del proyecto — no tiene un `AGENTS.md` aparte,
@@ -50,6 +55,47 @@ input → (sanitizar) → Claude responde → (evaluar formato) → (verificar) 
 
 `index.js` orquesta las 4 paradas en orden sobre un fixture de
 `fixtures/textos-fuente.json`.
+
+## Árbol completo de archivos
+
+No es solo `index.js` + `src/` — así es TODO lo que tiene el repo, para que
+se pueda navegar sin sorpresas:
+
+```
+deadline-verifier-lab/
+├── index.js                    orquestador — corre las 4 paradas en orden
+├── bonus-tooluse.js             BONUS — tool use real de la API (ver sección dedicada)
+├── package.json                metadata + "node >=18", CERO dependencias runtime
+├── .env.example                plantilla de la variable de entorno (sin la key real)
+├── .env                        tu key real acá — gitignored, nunca se sube
+├── .gitignore                  excluye .env, node_modules/, y los logs generados
+├── CLAUDE.md                   reglas del proyecto para Claude Code (ver pregunta de arriba)
+├── README.md                   este archivo
+├── fixtures/
+│   └── textos-fuente.json      los 2 casos de prueba (datos, no código)
+├── logs/
+│   ├── .gitkeep                fuerza a git a trackear la carpeta vacía
+│   └── auditoria.jsonl         se genera al correr el lab — gitignored (contiene tu output real)
+└── src/
+    ├── env.js                  parser de .env casero (ver por qué cero deps, abajo)
+    ├── 01-sanitize.js          Architect Foundations — sanitizar el input
+    ├── 02-prompt.js            Associate — armar el prompt + evaluar el output
+    ├── 03-client.js            Developer — llamar a la API
+    └── 04-verify.js            Architect Professional — verificar + loggear
+```
+
+Notas rápidas sobre los archivos que no son código de las 4 certs:
+- **`fixtures/textos-fuente.json`** son datos, no lógica — pero vale la
+  pena mirarlo: ahí está el campo `fechaReferencia` que le dice al
+  verificador qué "hoy" asumir (ver el bug real que esto arregló, más
+  abajo en el historial de commits del repo).
+- **`.env` / `.env.example`**: el patrón estándar para no commitear
+  secretos — `.env.example` sí se sube (es una plantilla sin datos reales),
+  `.env` nunca (está en `.gitignore`).
+- **`logs/auditoria.jsonl`** tampoco se sube — es el output de CADA corrida
+  tuya, con tu texto sanitizado y la respuesta cruda del modelo adentro; no
+  tiene sentido versionarlo, y podría contener datos de un fixture que
+  cambie en el futuro.
 
 ## Mapa completo: dónde ver cada concepto de certificación en el código
 
@@ -105,6 +151,43 @@ dicen ARQUITECTURA / GOBERNANZA / OUTPUT EVALUATION / etc.) — esto es el
   contestó el modelo, y el resultado. La idea a transmitir en la clase:
   nunca actuar sobre una decisión de IA sin dejar rastro de cómo se llegó
   a ella.
+
+## Bonus: tool use real (`bonus-tooluse.js`)
+
+Script aparte, independiente del flujo principal — no lo corre `index.js`,
+se corre solo: `node bonus-tooluse.js` (necesita `ANTHROPIC_API_KEY`, mismo
+`.env`).
+
+**Por qué existe:** el lab principal deja el cálculo de "10 días hábiles
+desde tal fecha" a criterio del modelo, dentro de su respuesta de texto —
+funciona, pero es al modelo haciendo aritmética "de cabeza". Este bonus
+resuelve el MISMO problema con **tool use real**: en vez de pedirle a
+Claude que calcule, le das una herramienta (`sumar_dias_habiles`, código
+determinístico común y corriente) y dejás que el modelo decida cuándo
+llamarla y con qué argumentos.
+
+**Los dos turnos, y qué certificación explica cada uno:**
+1. **Turno 1** — se manda el pedido con `tools: [HERRAMIENTA_DIAS_HABILES]`
+   en el body de la API. Claude no responde texto: devuelve un content
+   block `type: "tool_use"` con `name` y `input` (los argumentos,
+   validados contra el `input_schema` que definiste — esto es **tool
+   schema**, Developer).
+2. **El código ejecuta la herramienta** — `sumarDiasHabiles(...)` corre en
+   JavaScript común, sin IA de por medio. Claude nunca corre código: solo
+   pide que se lo corran y con qué datos.
+3. **Turno 2** — se le manda de vuelta el resultado como un bloque
+   `tool_result`, y Claude arma la respuesta final basada en un número que
+   YA es correcto, no en un cálculo propio. Este segundo turno es el
+   patrón real de cómo funciona tool use — no es una sola llamada, es una
+   conversación de ida y vuelta entre el modelo y tu código.
+
+**Para la clase:** correr esto al lado del caso `notificacion-01` del lab
+principal es la comparación directa — mismo problema (calcular una fecha
+sumando días hábiles), dos formas de resolverlo: dejárselo al modelo
+(funciona, pero es menos confiable/auditable) vs. dárselo como herramienta
+(el modelo decide CUÁNDO usarla, el código garantiza que el cálculo esté
+bien). Probado en vivo contra la API real — Claude pide la herramienta,
+recibe `2026-03-17`, y cierra con esa fecha en su respuesta final.
 
 ## Origen de los patrones (referencia, no dependencia)
 
@@ -198,6 +281,7 @@ cp .env.example .env
 
 node index.js notificacion-02-riesgosa   # no usa la API
 node index.js notificacion-01            # sí usa la API
+node bonus-tooluse.js                    # BONUS — tool use real, sí usa la API
 ```
 
 Fixtures disponibles en `fixtures/textos-fuente.json`:
